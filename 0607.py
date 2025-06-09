@@ -8,7 +8,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import classification_report, confusion_matrix
-from tensorflow.keras.layers import BatchNormalization
 import random
 
 #1
@@ -17,7 +16,7 @@ base_dir = r"C:\Users\Yu Shan\Downloads\base_dir"
 
 # 影像參數
 IMG_SIZE = (224, 224)
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 # 資料增強與標準化
 train_datagen = ImageDataGenerator(
@@ -26,11 +25,11 @@ train_datagen = ImageDataGenerator(
     width_shift_range=0.2,
     height_shift_range=0.2,
     zoom_range=0.3,
-    brightness_range=[0.6,1.4],
-    shear_range=0.3,
+    brightness_range=[0.7,1.3],
+    shear_range=0.2,
     horizontal_flip=True,
-    fill_mode='reflect',
-    channel_shift_range=30
+    fill_mode='nearest',
+    channel_shift_range=20
 )
 
 val_test_datagen = ImageDataGenerator(rescale=1./255)
@@ -63,13 +62,10 @@ test_generator = val_test_datagen.flow_from_directory(
 #2
 model = Sequential([
     Conv2D(32, (3,3), activation='relu', input_shape=(224,224,3)),
-    BatchNormalization(),
     MaxPooling2D(2,2),
     Conv2D(64, (3,3), activation='relu'),
-    BatchNormalization(),
     MaxPooling2D(2,2),
     Conv2D(128, (3,3), activation='relu'),
-    BatchNormalization(),
     MaxPooling2D(2,2),
     Flatten(),
     Dense(128, activation='relu'),
@@ -77,7 +73,7 @@ model = Sequential([
     Dense(5, activation='softmax')
 ])
 
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=5e-5),
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
@@ -124,9 +120,9 @@ cm = confusion_matrix(y_true, y_pred_classes)
 plt.figure(figsize=(8,6))
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=train_generator.class_indices,
             yticklabels=train_generator.class_indices)
-plt.title("混淆矩陣")
-plt.xlabel("預測標籤")
-plt.ylabel("實際標籤")
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted Labels")
+plt.ylabel("True Labels")
 plt.show()
 
 # 類別報告
@@ -154,5 +150,5 @@ def show_samples(indices, title):
     plt.suptitle(title)
     plt.show()
 
-show_samples(random.sample(list(correct), 5), "✅ 正確分類案例")
-show_samples(random.sample(list(incorrect), 5), "❌ 錯誤分類案例")
+show_samples(random.sample(list(correct), 5), "Correct Predictions")
+show_samples(random.sample(list(incorrect), 5), "Incorrect Predictions")
